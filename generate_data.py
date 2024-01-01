@@ -170,7 +170,7 @@ def generate_data(
                 pass
             
             if (section_mapper[i] != section_mapper[j]):
-                data["conflict_list"].append((i, j))
+                data["conflict_list"].append((i + 1, j + 1)) # 1-based index
                 count_conflict += 1
                 if (count_conflict == num_conflits):
                     break
@@ -203,8 +203,8 @@ def generate_data(
     solution_str = ''        
     solution_str += "subjects,number_student,rooms,num_seat,day,section" + "\n"
     for subjects, room, day, section in assigned:
-        solution_str += str(subjects) + "," + str(data["num_students_per_subject"][subjects]) + "," + str(room) + "," + \
-            str(data["num_capacity_per_room"][room]) + "," + str(day) + "," + str(section) + "\n"
+        solution_str += str(subjects + 1) + "," + str(data["num_students_per_subject"][subjects]) + "," + str(room + 1) + "," + \
+            str(data["num_capacity_per_room"][room]) + "," + str(day + 1) + "," + str(section + 1) + "\n"
     
     if (valid_solution):
         with open("data/" + file_name + "_solution.csv", "w+") as f:
