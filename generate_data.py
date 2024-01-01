@@ -186,9 +186,9 @@ def generate_data(
     random.shuffle(conflicts_arr)
     
     input_str = ''
-    input_str += str(data["num_subjects"]) + "\n" \
+    input_str += str(data["num_subjects"]) + " " + str(data["num_rooms"]) + "\n" \
         + " ".join(list(map(str, data["num_students_per_subject"]))) \
-        + "\n" + str(data["num_rooms"]) + "\n" \
+        + "\n" \
         + " ".join(list(map(str, data["num_capacity_per_room"]))) \
         + "\n" + str( data["num_conflicts"]) + "\n" \
         + "\n".join(conflicts_arr)    
