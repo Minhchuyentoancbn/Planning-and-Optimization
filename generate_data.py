@@ -226,11 +226,10 @@ if __name__ == "__main__":
         (60, 12), 
         (70, 16), 
         (80, 20),
-        (200, 20)
     ]
 
     for _, config in enumerate(configs):
-        for i in range (5):
+        for i in range (3):
             num_subjects, num_rooms = config
             generate_data(num_subjects, num_rooms, 
                           file_name = "data_{}_{}_({})".format(num_subjects, num_rooms, i), 
