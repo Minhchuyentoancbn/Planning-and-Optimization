@@ -1,7 +1,8 @@
 import numpy as np
 import random
 import copy
-data_file = "./example_input1.txt"
+import time
+data_file = "./data_80_20_(2).txt"
 
 #WORK FLOW:
 #--GREEDY SOLVE:
@@ -35,11 +36,13 @@ def get_map(lst):
 def read_data(data_file_name):
     with open(data_file_name, "r") as f:
         r = f.readlines()
-        number_subject = int(r[0])
+        read = [int(u) for u in r[0][:-1].split(" ")]
+
+        number_subject = int(read[0])
         student_per_subject = [int(u) for u in r[1][:-1].split(" ")]
-        number_room = int(r[2])
-        place_per_room = [int(u) for u in r[3][:-1].split(" ")]
-        number_constrain = int(r[4])
+        number_room = int(read[1])
+        place_per_room = [int(u) for u in r[2][:-1].split(" ")]
+        number_constrain = int(r[3])
 
         index_map, student_per_subject = get_map(student_per_subject)
         student_per_subject = np.asarray(student_per_subject)
@@ -52,24 +55,20 @@ def read_data(data_file_name):
 
         constrain = []
         for i in range(number_constrain):
-            each_constrain = [int(u) for u in r[5 + i][:-1].split(" ")]
+            each_constrain = [int(u) for u in r[4 + i][:-1].split(" ")]
             constrain.append(each_constrain)
 
         #Build constrant matrix, [i][j] = 1 iff subject i can't be arrage with subject j in the same timeslot
-        matrix_constrain = np.zeros((number_subject + 1, number_subject + 1))
+        matrix_constrain = np.zeros((number_subject+1, number_subject+1))
         for iter in constrain:
-            i = index_map[iter[0]]
-            j = index_map[iter[1]]
+            i = index_map[iter[0] - 1]
+            j = index_map[iter[1] - 1]
             matrix_constrain[i][j] = 1
             matrix_constrain[j][i] = 1
 
-        return number_subject, student_per_subject, number_room, place_per_room, number_constrain, constrain, matrix_constrain
+        return number_subject, student_per_subject, number_room, place_per_room, number_constrain, constrain, matrix_constrain,index_map
 
-# number_subject, student_per_subject, number_room, place_per_room, number_constrain, constrain, matrix_constrain = read_data(data_file)
-# print(str(number_subject))
-# print(str(student_per_subject))
-# print(str(place_per_room))
-# print(matrix_constrain)
+
 
 #Gen greedy solution
 def greedy_solve(number_subject, student_per_subject, number_room, place_per_room, number_constrain, constrain,
@@ -95,11 +94,12 @@ def greedy_solve(number_subject, student_per_subject, number_room, place_per_roo
 
                     # TO-DO ADD CONFLICT
                     for i in range(number_subject):
+
                         if matrix_constrain[iter_sub][i] == 1:
                             conflict[i] = 1
 
                     # ADD CONFLICT
-                    this_kip.append(iter_sub)
+                    this_kip.append(index_map[iter_sub] + 1)
                     iter_room += 1
                     iter_sub += 1
 
@@ -109,15 +109,19 @@ def greedy_solve(number_subject, student_per_subject, number_room, place_per_roo
 
     return kip, solve
 
-number_subject, student_per_subject, number_room, place_per_room, number_constrain, constrain, matrix_constrain = read_data(data_file)
+start = time.time()
+number_subject, student_per_subject, number_room, place_per_room, number_constrain, constrain, matrix_constrain, index_map = read_data(data_file)
 # print(student_per_subject)
 # print(place_per_room)
 # print(matrix_constrain)
 kip, solve = greedy_solve(number_subject, student_per_subject, number_room, place_per_room, number_constrain, constrain, matrix_constrain)
+end = time.time()
 print("-------------------------------------------------GREEDY RESULT--------------------------------------------------------")
 print(f"Number of timeslots: {kip}")
 for i, timeslot in enumerate(solve, start=1):
     print(f'Timeslot{i}: {timeslot}')
+
+print(f"Run time:{end - start}")
 #Init solution using GREEDY SOLVE from x timeslots x: 1 --> k
 def init_solution_greedy(k, number_subject, student_per_subject, number_room, place_per_room, matrix_constrain):
   solution = []
@@ -397,9 +401,8 @@ def k_color(k, number_subject, student_per_subject, number_room, place_per_room,
 
 def optimize_solve(data_file):
     # READ DATA
-    number_subject, student_per_subject, number_room, place_per_room, number_constrain, constrain, matrix_constrain = read_data(
+    number_subject, student_per_subject, number_room, place_per_room, number_constrain, constrain, matrix_constrain, index_map = read_data(
         data_file)
-
     # GET GREEDY SOLUTION
     len_greedy, sol = greedy_solve(number_subject, student_per_subject, number_room, place_per_room,
                                        number_constrain, constrain, matrix_constrain)
@@ -422,9 +425,12 @@ def optimize_solve(data_file):
             return k + 1, final_result
             break
 
-    return -1
 
+    return -1
+start = time.time()
 len_sol, final_solution = optimize_solve(data_file)
+end = time.time()
+print(f"SA run time: {end - start}")
 print("-------------------------------------------------FINAL RESULT--------------------------------------------------------")
 print(f"Number of timeslots: {len_sol}")
 for i, timeslot in enumerate(final_solution, start=1):
