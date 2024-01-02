@@ -1,3 +1,4 @@
+#PYTHON 
 from ortools.sat.python import cp_model
 
 
@@ -50,45 +51,20 @@ for i in range(N):
 model.Minimize(timeslot)
 
 
-# Define a solution printer to print all solutions
-class VarArraySolutionPrinter(cp_model.CpSolverSolutionCallback):
-    def __init__(self, s, y, timeslot):
-        cp_model.CpSolverSolutionCallback.__init__(self)
-        self.__s = s
-        self.__y = y
-        self.__timeslot = timeslot
-        self.__solution_count = 0
-
-    def on_solution_callback(self):
-        self.__solution_count += 1
-        room = []
-        for j in range(M):
-            for i in range(N):
-                if self.Value(self.__y[i][j]) == 1:
-                    room.append(j)
-        print(f"Solution {self.__solution_count}:")
-        for i in range(N):
-            print(
-                f"Course {i + 1} - Start Slot: {self.Value(self.__s[i])%4+1}, Room: {room[i] + 1}"
-            )
-        print(f"Timeslot: {self.Value(self.__timeslot)}")
-        print()
-
-    def solution_count(self):
-        return self.__solution_count
-
-
 # Create a solver
 solver = cp_model.CpSolver()
-solution_printer = VarArraySolutionPrinter(s, y, timeslot)
+status = solver.Solve(model)
 
-# Enumerate all solutions
-solver.parameters.enumerate_all_solutions = True
-
-# Solve
-status = solver.Solve(model, solution_printer)
-day = round(solver.Value(timeslot))
-
-# Print the results
-print(f"Status = {solver.StatusName(status)}")
-print(f"Number of solutions found: {solution_printer.solution_count()}")
+if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
+    timeslot=[]
+    for i in range(N):
+        timeslot.append(solver.Value(s[i]))
+    room=[]
+    for i in range(N):
+        for j in range(M):
+            if solver.Value(y[i][j]) == 1:
+                room.append(j)
+    for i in range(N):
+        print(i+1,timeslot[i]+1,room[i]+1)
+else:
+    print("No solution found.")
