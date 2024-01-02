@@ -2,7 +2,7 @@ import numpy as np
 import random
 import copy
 import time
-data_file = "./data_80_20_(2).txt"
+data_file = "../data_80_20_(2).txt"
 
 #WORK FLOW:
 #--GREEDY SOLVE:
