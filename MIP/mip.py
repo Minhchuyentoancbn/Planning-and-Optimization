@@ -89,7 +89,7 @@ def solve_with_mip(num_subjects: int, num_rooms: int, nums_student_per_subject: 
             solver.Add(solver.Sum([x[(subject, room, section_id)] * nums_student_per_subject[subject]
                                    for section_id in range(max_sum_sections)]) <= num_seats_per_room[room])
 
-    # Constraints 4: Two subjects cannot be assigned to the same room in the same section
+    # Constraints 4: Two conflict subjects cannot be assigned  in the same section
     for section_id in range(max_sum_sections):
         for subject1, subject2 in subject_pairs:
             solver.Add(solver.Sum([x[(subject1, room, section_id)] + x[(subject2, room, section_id)]
