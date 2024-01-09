@@ -1,7 +1,6 @@
 from ortools.linear_solver import pywraplp
 import math
 
-
 # def read_data(file_name):
 #     data = {}
 
@@ -55,7 +54,6 @@ def solve_with_mip(num_subjects: int, num_rooms: int, nums_student_per_subject: 
     num_days = math.ceil(num_subjects / num_sections_per_day)
     max_sum_sections = num_subjects
 
-    # Create a new linear solver
     solver = pywraplp.Solver('Scheduling', pywraplp.Solver.CBC_MIXED_INTEGER_PROGRAMMING)
 
     x = {}
@@ -67,7 +65,7 @@ def solve_with_mip(num_subjects: int, num_rooms: int, nums_student_per_subject: 
 
     y = solver.IntVar(0, max_sum_sections, 'y')
 
-    # Constraints 1: Each subject must be assigned once
+    # Ràng buộc: Môn thi nào cũng phải được xếp lịch
     for subject in range(num_subjects):
         temp = []
 
@@ -77,37 +75,33 @@ def solve_with_mip(num_subjects: int, num_rooms: int, nums_student_per_subject: 
 
         solver.Add(solver.Sum(temp) == 1)
 
-        # Constraints 2: Each room must have most one subject in each section
+        # Mỗi phòng chỉ được dùng tối đa cho 1 môn thi vào mỗi kíp
     for room in range(num_rooms):
         for section_id in range(max_sum_sections):
             solver.Add(solver.Sum([x[(subject, room, section_id)]
                                    for subject in range(num_subjects)]) <= 1)
 
-    # Constraints 3: Each subject assigned to a room must have enough seats
+    # Phòng thi phải chứa đủ số học sinh của môn thi
     for subject in range(num_subjects):
         for room in range(num_rooms):
             solver.Add(solver.Sum([x[(subject, room, section_id)] * nums_student_per_subject[subject]
                                    for section_id in range(max_sum_sections)]) <= num_seats_per_room[room])
 
-    # Constraints 4: Two conflict subjects cannot be assigned  in the same section
+    # 2 môn thi conflict không thể thi cùng kíp
     for section_id in range(max_sum_sections):
         for subject1, subject2 in subject_pairs:
             solver.Add(solver.Sum([x[(subject1, room, section_id)] + x[(subject2, room, section_id)]
                                    for room in range(num_rooms)]) <= 1)
 
-    # Constraints 5: Minimize the number of sections
+    # y là số kíp thi
     for subject in range(num_subjects):
         for room in range(num_rooms):
             for section_id in range(max_sum_sections):
                 solver.Add(y >= x[(subject, room, section_id)] * section_id)
 
-    # Objective function
     solver.Minimize(y)
 
-    # Solve the problem
     status = solver.Solve()
-
-    # print("Status = ", STATUS_DICT[status], end='\n')
 
     solution = []
 
@@ -117,10 +111,9 @@ def solve_with_mip(num_subjects: int, num_rooms: int, nums_student_per_subject: 
             for section_id in range(max_sum_sections):
                 if x[(subject, room, section_id)].solution_value() > 0:
                     print(f"{subject + 1} {section_id + 1} {room + 1}")
-                    # print('Subject %i is assigned to room %i in section %i' % (subject, room, section_id))
 
                     solution.append(
-                        (subject, room, section_id // num_sections_per_day, section_id))
+                        (subject, room, section_id // num_sections_per_day, section_id % num_sections_per_day))
 
     solution.sort(key=lambda x: x[2] * num_sections_per_day + x[3])
 
@@ -134,8 +127,7 @@ def solve_with_mip(num_subjects: int, num_rooms: int, nums_student_per_subject: 
 
 
 if __name__ == '__main__':
-    # file_name = '../example_input.txt'
-    # data = read_data(file_name)
+
     data = read_data()
     solution_str, status = solve_with_mip(data["num_subjects"], data["num_rooms"], data["num_students_per_subject"],
                                           data["num_seats_per_room"], data["conflicts"])
