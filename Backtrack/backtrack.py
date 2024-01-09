@@ -32,85 +32,72 @@ def build_conflict_table(n, conflicts):
     return conflict_table
                       
 
-def schedule_exams(exams, num_days, num_sections, room_capacities, conflict_table):
-    """
-    Check whether we can schedule all exams in the given number of days
-    """
+def schedule_exams(n, m, d, c, conflict_table):
+    global best_objective, best_schedule_room, best_schedule_section
 
-    # Assign exam to a slot for each day
-    num_rooms = len(room_capacities)
-    schedule_exams = [[[] for _ in range(num_sections)] for _ in range(num_days)]
-    schedule_rooms = [[[] for _ in range(num_sections)] for _ in range(num_days)]
+    scheduled_room = [0 for _ in range(n)]
+    schedule_section = [0 for _ in range(n)]
+    best_schedule_room = []
+    best_schedule_section = []
+    best_objective = (n - 1) // 4 + 2
 
+    def is_valid(subject_index, section, room):
+        # branch and bound
+        if section // 4 + 1 >= best_objective:
+            return False
 
-    def is_valid(exam_index, day, section, room):
-        """
-        Check if we can schedule exam at index exam_index in day and section at room
-        """
-        # Check capacity
-        if exams[exam_index][1] > room_capacities[room]:
+        # check capacity
+        if d[subject_index] > c[room]:
             return False
         
-        # Check room is not used
-        if room in schedule_rooms[day][section]:
-            return False
-        
-        # Check conflict
-        for scheduled_exam in schedule_exams[day][section]:
-            if conflict_table.get((exams[exam_index][0], scheduled_exam[0]), 0) == 1:
+        # check room is not used at the same time
+        for subject in range(subject_index):
+            if scheduled_room[subject] == room and schedule_section[subject] == section:
                 return False
             
+        # check conflict
+        for subject in range(subject_index):
+            if conflict_table.get((subject + 1, subject_index + 1), 0) == 1:
+                if schedule_section[subject] == section:
+                    return False
+                
         return True
 
-        
+    def solution_found():
+        global best_objective, best_schedule_room, best_schedule_section
+        max_section = max(schedule_section)
+        if max_section < best_objective:
+            best_objective = max_section // 4 + 1
+            best_schedule_room = [room for room in scheduled_room]
+            best_schedule_section = [section % 4 for section in schedule_section]
 
-    def backtrack(exam_index):
-        """
-        Check if we can schedule exam at index exam_index
-        """
-        if exam_index == len(exams):
-            return True
-        
-        for day in range(num_days):
-            for section in range(num_sections):
-                for room in range(num_rooms):
-                    # Check if we can schedule exam at index exam_index in day and section
-                    if is_valid(exam_index, day, section, room):
-                        schedule_exams[day][section].append(exams[exam_index])
-                        schedule_rooms[day][section].append(room)
-                        if backtrack(exam_index + 1):
-                            return True
-                        schedule_exams[day][section].pop()
-                        schedule_rooms[day][section].pop()
 
-        return False
-    
-    if backtrack(0):
-        return schedule_exams, schedule_rooms
-    return None, None
+    def backtrack(subject_index):
+        for section in range(n):
+            for room in range(m):
+                if is_valid(subject_index, section, room):
+                    scheduled_room[subject_index] = room
+                    schedule_section[subject_index] = section
+                    
+                    if subject_index == n - 1:
+                        solution_found()
+                    else:
+                        backtrack(subject_index + 1)
 
+    backtrack(0)
+
+    final_answer = []
+    for i in range(n):
+        final_answer.append((i + 1, best_schedule_section[i] + 1, best_schedule_room[i] + 1))
+
+    return final_answer
 
 
 if __name__ == "__main__":
     n, m, d, c, conflicts = read_data()
     conflict_table = build_conflict_table(n, conflicts)
 
-    exams = [(i + 1, d[i]) for i in range(n)]
-
-    scheduled_exams = None
-    scheduled_rooms = None
-
-    for num_days in range(1, n + 1):
-        scheduled_exams, scheduled_rooms = schedule_exams(exams, num_days, 4, c, conflict_table)
-        if scheduled_exams is not None:
-            break
-
-    final_answer = [[] for _ in range(n)]
-    for day in range(num_days):
-        for section in range(4):
-            for i, exam in enumerate(scheduled_exams[day][section]):
-                final_answer[exam[0] - 1] = ((exam[0], section + 1, scheduled_rooms[day][section][i] + 1))
-
+    final_answer = schedule_exams(n, m, d, c, conflict_table)
 
     # Print solution
     for i in range(n):
