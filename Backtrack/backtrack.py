@@ -69,7 +69,7 @@ def schedule_exams(n, m, d, c, conflict_table):
         if max_section < best_objective:
             best_objective = max_section // 4 + 1
             best_schedule_room = [room for room in scheduled_room]
-            best_schedule_section = [section % 4 for section in schedule_section]
+            best_schedule_section = [section for section in schedule_section]
 
 
     def backtrack(subject_index):

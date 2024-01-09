@@ -95,7 +95,7 @@ for i in range(N):
         if solver.Value(y[i][j]) == 1:
             room = j
             break
-    print(f"{i + 1} {solver.Value(s[i]) % 4 + 1} {room + 1}")
+    print(f"{i + 1} {solver.Value(s[i]) + 1} {room + 1}")
 
 # Print the results
 # print(f"Status = {solver.StatusName(status)}")

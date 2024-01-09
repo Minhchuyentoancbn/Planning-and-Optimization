@@ -120,7 +120,7 @@ def solve_with_mip(num_subjects: int, num_rooms: int, nums_student_per_subject: 
                     # print('Subject %i is assigned to room %i in section %i' % (subject, room, section_id))
 
                     solution.append(
-                        (subject, room, section_id // num_sections_per_day, section_id % num_sections_per_day))
+                        (subject, room, section_id // num_sections_per_day, section_id))
 
     solution.sort(key=lambda x: x[2] * num_sections_per_day + x[3])
 
